@@ -7,3 +7,4 @@ The radio channel number is configurable in the source as you might want to avoi
 
 The BBC micro:bit watch kit from Cool Components is a suitable souce of the components https://coolcomponents.co.uk/products/micro-bit-watch-kit (but don't forget to make sure you have CR2025 batteries for this one).
 
+See the Wiki pages for more details and an alternative kit

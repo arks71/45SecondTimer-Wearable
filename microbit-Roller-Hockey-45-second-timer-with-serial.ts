@@ -18,6 +18,7 @@ let tens = 0;
 let ones = 0;
 basic.showString("S");
 let controller = 0;  // for future use - designed so a device knows if it was the one that started the timer running
+let timerLength = 45000;
 
 serial.redirect(SerialPin.P0, SerialPin.P1, 9600);
 serial.writeLine("Starting Micro:bit serial comms");
@@ -32,16 +33,32 @@ input.onButtonPressed(Button.B, function () {
 })
 
 function doStop(isController: boolean) {
-    startTime = 0;
-    serial.writeLine("stop");
-    if (isController) {
-        radio.sendValue("stop", 0);
+    if (startTime > 0) {
+        elapsed = input.runningTime() - startTime;
+        timerLength = (timerLength - elapsed);
+        startTime = 0;
+        serial.writeLine("stop");
+        if (isController) {
+            radio.sendValue("stop", 0);
+        }
+        led.plot(2, 0);
+        controller = 0;
     }
-    basic.showString("S");
-    controller = 0;
+    else {
+        // implement resume on a second 'stop' press
+        startTime = input.runningTime();
+        serial.writeLine("resume");
+        if (isController) {
+            radio.sendValue("resume", 0);
+        }
+        led.unplot(2, 0);
+        controller = 1;
+    }
+    //basic.showString("S");
 }
 
 function doStart(setController: boolean) {
+    timerLength = 45000;
     startTime = input.runningTime();
     serial.writeLine("start");
     if (setController) {
@@ -60,13 +77,16 @@ radio.onReceivedValue(function (name: string, value: number) {
     else if (name == "stop") {
         doStop(false);
     }
+    else if (name == "resume") {
+        doStop(false);
+    }
 })
 
 control.inBackground(function () {
     while (true) {
         if (startTime != 0) {
             elapsed = input.runningTime() - startTime;
-            remaining = Math.ceil(((45000 - elapsed) / 1000));
+            remaining = Math.ceil(((timerLength - elapsed) / 1000));
             if (remaining < 0) {
                 basic.showNumber(0)
                 music.playTone(262, music.beat(BeatFraction.Whole))
@@ -128,4 +148,3 @@ control.inBackground(function () {
         basic.pause(100)
     }
 })
-
